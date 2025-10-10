@@ -1,103 +1,183 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { List, Trash2, Edit2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+
+interface TodoList {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [lists, setLists] = useState<TodoList[]>([]);
+  const [editingList, setEditingList] = useState<TodoList | null>(null);
+  const [editName, setEditName] = useState('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    fetchLists();
+  }, []);
+
+  const fetchLists = async () => {
+    try {
+      const res = await fetch('/api/lists');
+      if (res.ok) {
+        const data = await res.json();
+        setLists(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch lists:', error);
+    }
+  };
+
+  const deleteList = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!confirm('Are you sure you want to delete this list and all its todos?')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/lists/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setLists(lists.filter(list => list.id !== id));
+      }
+    } catch (error) {
+      console.error('Failed to delete list:', error);
+    }
+  };
+
+  const startEdit = (list: TodoList, e: React.MouseEvent) => {
+    e.preventDefault();
+    setEditingList(list);
+    setEditName(list.name);
+    setIsEditDialogOpen(true);
+  };
+
+  const updateList = async () => {
+    if (!editingList || !editName.trim()) return;
+
+    try {
+      const res = await fetch(`/api/lists/${editingList.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editName }),
+      });
+
+      if (res.ok) {
+        const updatedList = await res.json();
+        setLists(lists.map(list =>
+          list.id === updatedList.id ? updatedList : list
+        ));
+        setIsEditDialogOpen(false);
+        setEditingList(null);
+        setEditName('');
+      }
+    } catch (error) {
+      console.error('Failed to update list:', error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">My Lists</h1>
+          <p className="text-muted-foreground">
+            Manage and organize your todo lists
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {lists.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <List className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">
+                No lists yet. Create one using the + button in the sidebar!
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {lists.map((list) => (
+              <Link key={list.id} href={`/lists/${list.id}`}>
+                <Card className="transition-all hover:shadow-lg cursor-pointer h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <List className="h-5 w-5" />
+                      {list.name}
+                    </CardTitle>
+                    <CardDescription>
+                      Created {new Date(list.createdAt).toLocaleDateString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => startEdit(list, e)}
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={(e) => deleteList(list.id, e)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit List Name</DialogTitle>
+              <DialogDescription>
+                Update the name of your todo list.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex gap-2 mt-4">
+              <Input
+                placeholder="List name..."
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && updateList()}
+                className="flex-1"
+              />
+              <Button
+                onClick={updateList}
+                disabled={!editName.trim()}
+              >
+                Save
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
