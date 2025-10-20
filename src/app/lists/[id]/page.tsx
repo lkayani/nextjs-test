@@ -37,36 +37,46 @@ export default function ListPage() {
 
   useEffect(() => {
     if (listId) {
+      console.log('[Frontend] ListPage mounted - listId:', listId, 'at', new Date().toISOString());
       fetchList();
       fetchTodos();
     }
   }, [listId]);
 
   const fetchList = async () => {
+    console.log('[Frontend] fetchList() - Fetching list:', listId);
     try {
       const res = await fetch(`/api/lists/${listId}`);
+      console.log('[Frontend] fetchList() - Response status:', res.status, '- ok:', res.ok);
       if (res.ok) {
         const data = await res.json();
+        console.log('[Frontend] fetchList() - List data received:', data);
         setList(data);
       } else if (res.status === 404) {
+        console.log('[Frontend] fetchList() - List not found (404), redirecting to home');
         router.push('/');
       }
     } catch (error) {
-      console.error('Failed to fetch list:', error);
+      console.error('[Frontend] fetchList() - Error:', error);
     } finally {
       setIsListLoading(false);
     }
   };
 
   const fetchTodos = async () => {
+    console.log('[Frontend] fetchTodos() - Fetching todos for list:', listId);
     try {
       const res = await fetch(`/api/lists/${listId}/todos`);
+      console.log('[Frontend] fetchTodos() - Response status:', res.status, '- ok:', res.ok);
       if (res.ok) {
         const data = await res.json();
+        console.log('[Frontend] fetchTodos() - Todos data received:', data.length, 'todos');
         setTodos(data);
+      } else {
+        console.log('[Frontend] fetchTodos() - Request failed with status:', res.status);
       }
     } catch (error) {
-      console.error('Failed to fetch todos:', error);
+      console.error('[Frontend] fetchTodos() - Error:', error);
     }
   };
 
