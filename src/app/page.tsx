@@ -1,182 +1,198 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { List, Trash2, Edit2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-
-interface TodoList {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { DollarSign, Download, TrendingUp, Users } from 'lucide-react';
+import { MetricCard } from '@/components/MetricCard';
+import { PerformanceTrendChart } from '@/components/charts/PerformanceTrendChart';
+import { ComparisonBarChart } from '@/components/charts/ComparisonBarChart';
+import { DistributionPieChart } from '@/components/charts/DistributionPieChart';
+import { format, subDays } from 'date-fns';
+import type { DashboardSummary, CreativeSummary, PlatformPerformance } from '@/lib/types';
+import { PLATFORM_COLORS, CHART_COLORS } from '@/lib/chartUtils';
 
 export default function Home() {
-  const [lists, setLists] = useState<TodoList[]>([]);
-  const [editingList, setEditingList] = useState<TodoList | null>(null);
-  const [editName, setEditName] = useState('');
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [topCreatives, setTopCreatives] = useState<CreativeSummary[]>([]);
+  const [platformData, setPlatformData] = useState<PlatformPerformance[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLists();
+    fetchDashboardData();
   }, []);
 
-  const fetchLists = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const res = await fetch('/api/lists');
-      if (res.ok) {
-        const data = await res.json();
-        setLists(data);
+      setLoading(true);
+
+      // Fetch summary metrics
+      const summaryRes = await fetch('/api/performance/summary?days=30');
+      if (summaryRes.ok) {
+        const data = await summaryRes.json();
+        setSummary(data);
+      }
+
+      // Fetch top creatives (get all and calculate aggregates)
+      const creativesRes = await fetch('/api/creatives?status=active');
+      if (creativesRes.ok) {
+        const creatives = await creativesRes.json();
+        // For simplicity, we'll just show first 5
+        setTopCreatives(creatives.slice(0, 5));
+      }
+
+      // Fetch platform performance
+      const platformRes = await fetch('/api/platforms?days=30');
+      if (platformRes.ok) {
+        const data = await platformRes.json();
+        setPlatformData(data);
       }
     } catch (error) {
-      console.error('Failed to fetch lists:', error);
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const deleteList = async (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!confirm('Are you sure you want to delete this list and all its todos?')) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/lists/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (res.ok) {
-        setLists(lists.filter(list => list.id !== id));
-      }
-    } catch (error) {
-      console.error('Failed to delete list:', error);
-    }
-  };
-
-  const startEdit = (list: TodoList, e: React.MouseEvent) => {
-    e.preventDefault();
-    setEditingList(list);
-    setEditName(list.name);
-    setIsEditDialogOpen(true);
-  };
-
-  const updateList = async () => {
-    if (!editingList || !editName.trim()) return;
-
-    try {
-      const res = await fetch(`/api/lists/${editingList.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName }),
-      });
-
-      if (res.ok) {
-        const updatedList = await res.json();
-        setLists(lists.map(list =>
-          list.id === updatedList.id ? updatedList : list
-        ));
-        setIsEditDialogOpen(false);
-        setEditingList(null);
-        setEditName('');
-      }
-    } catch (error) {
-      console.error('Failed to update list:', error);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold mb-2">Ad Creative Testing Dashboard</h1>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-8">
+      <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Lists</h1>
+          <h1 className="text-4xl font-bold mb-2">Ad Creative Testing Dashboard</h1>
           <p className="text-muted-foreground">
-            Manage and organize your todo lists
+            Monitor your mobile game ad creative performance across all platforms
           </p>
         </div>
 
-        {lists.length === 0 ? (
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <MetricCard
+            title="Total Spend"
+            value={summary?.totalSpend || 0}
+            format="currency"
+            icon={<DollarSign className="h-4 w-4" />}
+          />
+          <MetricCard
+            title="Total Installs"
+            value={summary?.totalInstalls || 0}
+            format="number"
+            icon={<Download className="h-4 w-4" />}
+          />
+          <MetricCard
+            title="Average CPI"
+            value={summary?.avgCPI || 0}
+            format="currency"
+            decimals={2}
+            icon={<TrendingUp className="h-4 w-4" />}
+          />
+          <MetricCard
+            title="Average ROAS"
+            value={summary?.avgROAS || 0}
+            format="decimal"
+            decimals={2}
+            icon={<Users className="h-4 w-4" />}
+          />
+        </div>
+
+        {/* Charts Row 1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <Card>
-            <CardContent className="py-12 text-center">
-              <List className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                No lists yet. Create one using the + button in the sidebar!
-              </p>
+            <CardHeader>
+              <CardTitle>Platform Performance</CardTitle>
+              <CardDescription>Spend distribution by platform (Last 30 days)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DistributionPieChart
+                data={platformData.map(p => ({
+                  name: p.platform.charAt(0).toUpperCase() + p.platform.slice(1),
+                  value: p.spend,
+                  color: PLATFORM_COLORS[p.platform]
+                }))}
+                format="currency"
+                height={300}
+              />
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {lists.map((list) => (
-              <Link key={list.id} href={`/lists/${list.id}`}>
-                <Card className="transition-all hover:shadow-lg cursor-pointer h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <List className="h-5 w-5" />
-                      {list.name}
-                    </CardTitle>
-                    <CardDescription>
-                      Created {new Date(list.createdAt).toLocaleDateString()}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={(e) => startEdit(list, e)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={(e) => deleteList(list.id, e)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        )}
 
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit List Name</DialogTitle>
-              <DialogDescription>
-                Update the name of your todo list.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex gap-2 mt-4">
-              <Input
-                placeholder="List name..."
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && updateList()}
-                className="flex-1"
+          <Card>
+            <CardHeader>
+              <CardTitle>Platform CPI Comparison</CardTitle>
+              <CardDescription>Cost per install by platform</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ComparisonBarChart
+                data={platformData.map(p => ({
+                  name: p.platform.charAt(0).toUpperCase() + p.platform.slice(1),
+                  cpi: p.cpi
+                }))}
+                dataKeys={[
+                  { key: 'cpi', name: 'CPI', color: CHART_COLORS.primary, format: 'currency' }
+                ]}
+                height={300}
+                layout="horizontal"
               />
-              <Button
-                onClick={updateList}
-                disabled={!editName.trim()}
-              >
-                Save
-              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Creatives Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Active Creatives</CardTitle>
+            <CardDescription>Currently active ad creatives</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {topCreatives.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No active creatives found</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-4 font-medium">Name</th>
+                        <th className="text-left py-3 px-4 font-medium">Type</th>
+                        <th className="text-left py-3 px-4 font-medium">Platform</th>
+                        <th className="text-left py-3 px-4 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topCreatives.map((creative) => (
+                        <tr key={creative.id} className="border-b last:border-0 hover:bg-muted/50">
+                          <td className="py-3 px-4">{creative.name}</td>
+                          <td className="py-3 px-4 capitalize">{creative.type}</td>
+                          <td className="py-3 px-4 capitalize">{creative.platform}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                              creative.status === 'active' ? 'bg-green-100 text-green-700' :
+                              creative.status === 'testing' ? 'bg-blue-100 text-blue-700' :
+                              creative.status === 'paused' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {creative.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

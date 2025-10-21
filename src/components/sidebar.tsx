@@ -1,139 +1,83 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Plus, List, Home } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-
-interface TodoList {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Home, Image, FlaskConical, Globe, TrendingUp } from 'lucide-react';
 
 export function Sidebar() {
-  const [lists, setLists] = useState<TodoList[]>([]);
-  const [newListName, setNewListName] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    fetchLists();
-  }, []);
-
-  const fetchLists = async () => {
-    try {
-      const res = await fetch('/api/lists');
-      if (res.ok) {
-        const data = await res.json();
-        setLists(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch lists:', error);
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
     }
-  };
-
-  const createList = async () => {
-    if (!newListName.trim()) return;
-
-    setIsCreating(true);
-    try {
-      const res = await fetch('/api/lists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newListName }),
-      });
-
-      if (res.ok) {
-        const list = await res.json();
-        setLists([list, ...lists]);
-        setNewListName('');
-        setIsDialogOpen(false);
-      }
-    } catch (error) {
-      console.error('Failed to create list:', error);
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      createList();
-    }
+    return pathname.startsWith(path);
   };
 
   return (
-    <div className="w-64 min-h-screen bg-gray-50 dark:bg-gray-900 border-r p-4 flex flex-col gap-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">My Lists</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="icon" variant="ghost">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New List</DialogTitle>
-              <DialogDescription>
-                Give your new todo list a name.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex gap-2 mt-4">
-              <Input
-                placeholder="List name..."
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="flex-1"
-              />
-              <Button
-                onClick={createList}
-                disabled={isCreating || !newListName.trim()}
-              >
-                {isCreating ? 'Creating...' : 'Create'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="w-64 min-h-screen bg-gray-50 dark:bg-gray-900 border-r p-4 flex flex-col gap-2">
+      <div className="mb-6">
+        <h2 className="text-xl font-bold mb-1">Ad Creative</h2>
+        <p className="text-xs text-muted-foreground">Testing Dashboard</p>
       </div>
 
-      <Link href="/">
-        <Button
-          variant={pathname === '/' ? 'secondary' : 'ghost'}
-          className="w-full justify-start"
-        >
-          <Home className="mr-2 h-4 w-4" />
-          Home
-        </Button>
-      </Link>
+      <nav className="space-y-1">
+        <Link href="/">
+          <Button
+            variant={isActive('/') && pathname === '/' ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            Dashboard
+          </Button>
+        </Link>
 
-      <div className="flex-1 space-y-2">
-        {lists.map((list) => (
-          <Link key={list.id} href={`/lists/${list.id}`}>
-            <Button
-              variant={pathname === `/lists/${list.id}` ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
-            >
-              <List className="mr-2 h-4 w-4" />
-              {list.name}
-            </Button>
-          </Link>
-        ))}
+        <Link href="/creatives">
+          <Button
+            variant={isActive('/creatives') ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+          >
+            <Image className="mr-2 h-4 w-4" />
+            Creatives
+          </Button>
+        </Link>
+
+        <Link href="/tests">
+          <Button
+            variant={isActive('/tests') ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+          >
+            <FlaskConical className="mr-2 h-4 w-4" />
+            A/B Tests
+          </Button>
+        </Link>
+
+        <Link href="/platforms">
+          <Button
+            variant={isActive('/platforms') ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+          >
+            <Globe className="mr-2 h-4 w-4" />
+            Platforms
+          </Button>
+        </Link>
+      </nav>
+
+      <div className="flex-1" />
+
+      <div className="pt-4 mt-4 border-t">
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p className="font-medium">Quick Stats</p>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-3 w-3" />
+            <span>60 Active Creatives</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <FlaskConical className="h-3 w-3" />
+            <span>3 Running Tests</span>
+          </div>
+        </div>
       </div>
     </div>
   );

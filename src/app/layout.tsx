@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Todo Lists App",
-  description: "Manage your todos with multiple lists",
+  title: "Ad Creative Testing Dashboard",
+  description: "Monitor and analyze mobile game ad creative performance across platforms",
 };
 
 export default function RootLayout({

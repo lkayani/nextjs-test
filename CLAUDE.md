@@ -13,7 +13,7 @@ This is a **showcase example** of a modern Next.js application demonstrating bes
 - **Turbopack** for fast development and builds
 - **Lucide React** for icons
 
-The project demonstrates a full-stack implementation with client-side React components, Next.js API routes, and in-memory data storage. While the example implements a todo list application, the patterns and architecture can be applied to any type of application.
+The project demonstrates a full-stack implementation with client-side React components, Next.js API routes, **Recharts** data visualizations, and in-memory data storage. The application showcases a **Mobile Game Ad Creative Testing Dashboard** with analytics, charts, and performance tracking - demonstrating real-world data visualization patterns that can be applied to any analytics or dashboard application.
 
 ## Development Commands
 
