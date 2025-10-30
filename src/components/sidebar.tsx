@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Home, Image, FlaskConical, Globe, TrendingUp } from 'lucide-react';
+import { Home, Image, FlaskConical, Globe, TrendingUp, FileSpreadsheet } from 'lucide-react';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -60,6 +60,16 @@ export function Sidebar() {
           >
             <Globe className="mr-2 h-4 w-4" />
             Platforms
+          </Button>
+        </Link>
+
+        <Link href="/sheet-data">
+          <Button
+            variant={isActive('/sheet-data') ? 'secondary' : 'ghost'}
+            className="w-full justify-start"
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Sheet Data
           </Button>
         </Link>
       </nav>
