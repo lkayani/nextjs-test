@@ -1,0 +1,20 @@
+# Claude Progress Log
+
+## Completed Tasks
+
+### 2026-01-06: Created Hello World API Endpoint
+- Created `/api/hello` endpoint at `src/app/api/hello/route.ts`
+- Returns JSON with greeting message and timestamp
+- Follows Next.js App Router pattern used in the project
+
+## Details
+The endpoint responds to GET requests with:
+```json
+{
+  "message": "Hello, World!",
+  "timestamp": "2026-01-06T..."
+}
+```
+
+## Remaining Tasks
+None - task complete.
