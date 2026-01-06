@@ -1,0 +1,10 @@
+## Progress Log
+
+### Completed
+- Created `/api/hello` endpoint at `src/app/api/hello/route.ts`
+  - Returns JSON with greeting message and timestamp
+  - Follows Next.js App Router pattern
+  - Uses NextResponse.json() for JSON responses
+
+### Task Complete
+The hello world API endpoint is ready and committed.
