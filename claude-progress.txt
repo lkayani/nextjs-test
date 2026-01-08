@@ -8,6 +8,7 @@
 - Follows Next.js 15 App Router pattern with NextResponse
 - Endpoint is accessible at GET /api/hello
 - Updated greeting message from "Hello, World!" to "Hello, Universe!"
+- Reverted greeting message back to "Hello, World!" (2026-01-08)
 
 ## API Endpoint Details
 - Path: `/api/hello`
@@ -16,7 +17,7 @@
 - Example response:
   ```json
   {
-    "message": "Hello, Universe!",
+    "message": "Hello, World!",
     "timestamp": "2026-01-06T..."
   }
   ```
