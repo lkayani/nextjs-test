@@ -2,6 +2,14 @@
 
 ## Completed Tasks
 
+### 2026-01-09: Added Testing Guidelines
+- Created comprehensive `TESTING.md` file with testing best practices
+- Covers unit tests, component tests, integration tests, and E2E tests
+- Includes setup instructions for Jest, React Testing Library, and Playwright
+- Provides code examples for different test types
+- Documents coverage goals and CI/CD integration
+- Tailored specifically for Next.js 15 TypeScript project structure
+
 ### 2026-01-09: Created Time API Endpoint
 - Created `/api/time` route at `src/app/api/time/route.ts`
 - Returns current time in multiple formats
