@@ -2,6 +2,13 @@
 
 ## Completed Tasks
 
+### 2026-01-09: Created Time API Endpoint
+- Created `/api/time` route at `src/app/api/time/route.ts`
+- Returns current time in multiple formats
+- Follows Next.js 15 App Router pattern with NextResponse
+- Endpoint is accessible at GET /api/time
+- Provides ISO timestamp, Unix timestamp, formatted time, and timezone
+
 ### 2026-01-06: Created Hello World API Endpoint
 - Created `/api/hello` route at `src/app/api/hello/route.ts`
 - Returns JSON response with greeting message and timestamp
@@ -10,6 +17,22 @@
 - Updated greeting message from "Hello, World!" to "Hello, Universe!"
 
 ## API Endpoint Details
+
+### /api/time
+- Path: `/api/time`
+- Method: GET
+- Response: JSON object with multiple time representations
+- Example response:
+  ```json
+  {
+    "timestamp": "2026-01-09T17:04:00.000Z",
+    "unix": 1767956640,
+    "formatted": "Thursday, January 9, 2026 at 05:04:00 PM UTC",
+    "timezone": "UTC"
+  }
+  ```
+
+### /api/hello
 - Path: `/api/hello`
 - Method: GET
 - Response: JSON object with `message` and `timestamp` fields
