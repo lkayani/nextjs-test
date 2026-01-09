@@ -2,6 +2,16 @@
 
 ## Completed Tasks
 
+### 2026-01-09: Created Calculator API Endpoint
+- Created `/api/calculate` route at `src/app/api/calculate/route.ts`
+- POST endpoint that performs basic arithmetic operations
+- Supports operations: add, subtract, multiply, divide
+- Comprehensive input validation for operation type and operands
+- Error handling for division by zero and invalid inputs
+- TypeScript types for request/response interfaces
+- Returns JSON response with success status, result, operation, and operands
+- Follows Next.js 15 App Router pattern with NextResponse
+
 ### 2026-01-09: Created Time API Endpoint
 - Created `/api/time` route at `src/app/api/time/route.ts`
 - Returns current time in multiple formats
@@ -17,6 +27,40 @@
 - Updated greeting message from "Hello, World!" to "Hello, Universe!"
 
 ## API Endpoint Details
+
+### /api/calculate
+- Path: `/api/calculate`
+- Method: POST
+- Request Body: JSON object with `operation`, `a`, and `b` fields
+- Operations: `add`, `subtract`, `multiply`, `divide`
+- Response: JSON object with `success`, `result`, `operation`, and `operands` fields
+- Example request:
+  ```json
+  {
+    "operation": "add",
+    "a": 5,
+    "b": 3
+  }
+  ```
+- Example success response:
+  ```json
+  {
+    "success": true,
+    "result": 8,
+    "operation": "add",
+    "operands": {
+      "a": 5,
+      "b": 3
+    }
+  }
+  ```
+- Example error response:
+  ```json
+  {
+    "success": false,
+    "error": "Cannot divide by zero"
+  }
+  ```
 
 ### /api/time
 - Path: `/api/time`
